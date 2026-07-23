@@ -8,13 +8,13 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Легенды Калуги",
     description: "Городская память, собранная вместе",
-    images: [{ url: "/og.png", width: 1738, height: 907 }],
+    images: [{ url: "/cover.webp", width: 1600, height: 835 }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Легенды Калуги",
     description: "Городская память, собранная вместе",
-    images: ["/og.png"],
+    images: ["/cover.webp"],
   },
 };
 

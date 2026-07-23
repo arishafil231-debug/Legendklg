@@ -44,7 +44,7 @@ button { color: inherit; }
   justify-content: center;
   background:
     linear-gradient(180deg, rgba(2, 9, 12, .03) 45%, rgba(2, 9, 12, .62) 100%),
-    url("/og.png") center center / cover no-repeat;
+    url("/cover.webp") center center / cover no-repeat;
   transition: opacity .56s ease, filter .56s ease, transform .56s ease;
 }
 
