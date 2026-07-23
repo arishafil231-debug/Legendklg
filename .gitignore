@@ -42,3 +42,4 @@ next-env.d.ts
 /work/
 /.git-tools/
 /.npm-cache/
+/.openai/site.tar.gz
