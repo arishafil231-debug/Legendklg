@@ -10,8 +10,31 @@ let active = "legends";
 let entries = [];
 let editing = null;
 const $ = (selector) => document.querySelector(selector);
+const authors = ["Алёна", "Даниил", "Владимир", "Арина", "Михаил", "Филипп"];
 const current = () => sections.find(([id]) => id === active);
 const setStatus = (text = "") => { $("#status").textContent = text; };
+
+function setupAuthorControl() {
+  const form = $("#entryForm");
+  const submit = form.querySelector('button[type="submit"], button:not([type])');
+  submit.classList.add("confirm-entry");
+  submit.textContent = "✓";
+  const control = document.createElement("div");
+  control.className = "author-control";
+  const label = document.createElement("label");
+  label.htmlFor = "entryAuthor";
+  label.textContent = "Кто сделал этот проект";
+  const select = document.createElement("select");
+  select.id = "entryAuthor";
+  authors.forEach((person) => {
+    const option = document.createElement("option");
+    option.value = person;
+    option.textContent = person;
+    select.append(option);
+  });
+  control.append(label, select);
+  form.querySelector("small").before(control);
+}
 
 async function api(method, body) {
   const url = method === "DELETE" ? `${API}?id=${body.id}` : API;
@@ -80,7 +103,16 @@ function renderEntries() {
       remove.textContent = "Удалить";
       remove.onclick = () => deleteEntry(entry.id);
       actions.append(edit, remove);
-      footer.append(date, actions);
+      const meta = document.createElement("span");
+      meta.className = "entry-meta";
+      meta.append(date);
+      if (entry.author) {
+        const author = document.createElement("span");
+        author.className = "author-chip";
+        author.textContent = entry.author;
+        meta.append(author);
+      }
+      footer.append(meta, actions);
       article.append(text, footer);
     }
     list.append(article);
@@ -135,7 +167,8 @@ $("#entryForm").addEventListener("submit", async (event) => {
   const content = area.value.trim();
   if (!content) return;
   try {
-    const { entry } = await api("POST", { section: active, content });
+    const author = $("#entryAuthor").value;
+    const { entry } = await api("POST", { section: active, content, author });
     entries.unshift(entry);
     area.value = "";
     setStatus("Запись добавлена");
@@ -172,5 +205,6 @@ $("#back").onclick = () => {
   $("#cover").classList.remove("hidden", "leaving");
 };
 
+setupAuthorControl();
 render();
 load();

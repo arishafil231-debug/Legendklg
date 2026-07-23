@@ -6,38 +6,37 @@ const sections = [
   {
     id: "legends",
     title: "Легенды",
-    number: "01",
     description: "Городские предания, слухи и истории, которые передают из уст в уста.",
     prompt: "Например: говорят, что в старом доме на Воскресенской…",
   },
   {
     id: "history",
     title: "История",
-    number: "02",
     description: "События, места и люди, из которых складывается летопись города.",
     prompt: "Например: в этом здании до революции находилась…",
   },
   {
     id: "identity",
     title: "Идентичность",
-    number: "03",
     description: "Что делает Калугу Калугой: слова, привычки, места и характер.",
     prompt: "Например: для меня Калуга — это…",
   },
   {
     id: "made",
     title: "Сделано в Калуге",
-    number: "04",
     description: "Люди, мастерские, продукты и идеи, созданные здесь.",
     prompt: "Например: название проекта, мастерской или инициативы…",
   },
 ] as const;
+
+const authors = ["Алёна", "Даниил", "Владимир", "Арина", "Михаил", "Филипп"] as const;
 
 type SectionId = (typeof sections)[number]["id"];
 type Entry = {
   id: number;
   section: SectionId;
   content: string;
+  author: string;
   createdAt: string;
 };
 
@@ -49,6 +48,7 @@ export function ProjectBoard() {
   const [active, setActive] = useState<SectionId>("legends");
   const [entries, setEntries] = useState<Entry[]>([]);
   const [draft, setDraft] = useState("");
+  const [author, setAuthor] = useState<(typeof authors)[number]>(authors[0]);
   const [editing, setEditing] = useState<number | null>(null);
   const [editText, setEditText] = useState("");
   const [busy, setBusy] = useState(false);
@@ -114,7 +114,7 @@ export function ProjectBoard() {
       const response = await fetch("/api/entries", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ section: active, content }),
+        body: JSON.stringify({ section: active, content, author }),
       });
       if (!response.ok) throw new Error();
       const data = (await response.json()) as { entry: Entry };
@@ -214,7 +214,6 @@ export function ProjectBoard() {
       </header>
 
       <section className="project-intro">
-        <p className="eyebrow">Проект 01</p>
         <h1>Легенды Калуги</h1>
         <p>Общая тетрадь городской памяти. Выберите раздел и добавьте то, что знаете.</p>
       </section>
@@ -251,7 +250,13 @@ export function ProjectBoard() {
               maxLength={500}
               rows={2}
             />
-            <button disabled={!draft.trim() || busy} aria-label="Добавить запись">→</button>
+            <button className="confirm-entry" disabled={!draft.trim() || busy} aria-label="Добавить запись">✓</button>
+          </div>
+          <div className="author-control">
+            <label htmlFor="entry-author">Кто сделал этот проект</label>
+            <select id="entry-author" value={author} onChange={(event) => setAuthor(event.target.value as (typeof authors)[number])}>
+              {authors.map((person) => <option key={person} value={person}>{person}</option>)}
+            </select>
           </div>
           <div className="form-note">
             <span>До 500 знаков</span>
@@ -284,7 +289,7 @@ export function ProjectBoard() {
                 <>
                   <p>{entry.content}</p>
                   <div className="entry-foot">
-                    <time>{new Date(entry.createdAt).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" })}</time>
+                    <span className="entry-meta"><time>{new Date(entry.createdAt).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" })}</time>{entry.author && <span className="author-chip">{entry.author}</span>}</span>
                     <span>
                       <button onClick={() => { setEditing(entry.id); setEditText(entry.content); }}>Изменить</button>
                       <button onClick={() => removeEntry(entry.id)}>Удалить</button>

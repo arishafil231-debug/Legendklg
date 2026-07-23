@@ -18,9 +18,14 @@ async function ensureTable() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       section TEXT NOT NULL,
       content TEXT NOT NULL,
+      author TEXT NOT NULL DEFAULT '',
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     )
   `).run();
+  const columns = await env.DB.prepare("PRAGMA table_info(entries)").all<{ name: string }>();
+  if (!columns.results.some((column) => column.name === "author")) {
+    await env.DB.prepare("ALTER TABLE entries ADD COLUMN author TEXT NOT NULL DEFAULT ''").run();
+  }
 }
 
 export function OPTIONS() {
@@ -31,7 +36,7 @@ export async function GET() {
   try {
     await ensureTable();
     const result = await env.DB.prepare(
-      "SELECT id, section, content, created_at AS createdAt FROM entries ORDER BY id DESC LIMIT 500",
+      "SELECT id, section, content, author, created_at AS createdAt FROM entries ORDER BY id DESC LIMIT 500",
     ).all();
     return json({ entries: result.results });
   } catch {
@@ -41,16 +46,18 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const body = (await request.json()) as { section?: string; content?: string };
+    const body = (await request.json()) as { section?: string; content?: string; author?: string };
     const section = body.section?.trim() ?? "";
     const content = body.content?.trim() ?? "";
-    if (!sectionIds.has(section) || !content || content.length > 500) {
+    const author = body.author?.trim() ?? "";
+    const allowedAuthors = new Set(["Алёна", "Даниил", "Владимир", "Арина", "Михаил", "Филипп"]);
+    if (!sectionIds.has(section) || !content || content.length > 500 || !allowedAuthors.has(author)) {
       return json({ error: "Некорректная запись" }, { status: 400 });
     }
     await ensureTable();
     const result = await env.DB.prepare(
-      "INSERT INTO entries (section, content) VALUES (?, ?) RETURNING id, section, content, created_at AS createdAt",
-    ).bind(section, content).first();
+      "INSERT INTO entries (section, content, author) VALUES (?, ?, ?) RETURNING id, section, content, author, created_at AS createdAt",
+    ).bind(section, content, author).first();
     return json({ entry: result }, { status: 201 });
   } catch {
     return json({ error: "Не удалось сохранить запись" }, { status: 500 });
