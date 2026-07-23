@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 
 const sections = [
   {
@@ -44,6 +44,8 @@ type Entry = {
 export function ProjectBoard() {
   const [inside, setInside] = useState(false);
   const [dissolving, setDissolving] = useState(false);
+  const [soundOn, setSoundOn] = useState(false);
+  const audioRef = useRef<HTMLAudioElement>(null);
   const [active, setActive] = useState<SectionId>("legends");
   const [entries, setEntries] = useState<Entry[]>([]);
   const [draft, setDraft] = useState("");
@@ -70,6 +72,37 @@ export function ProjectBoard() {
       })
       .catch(() => setStatus("Не удалось загрузить записи. Обновите страницу."));
   }, []);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    audio.volume = 0.55;
+    audio.play()
+      .then(() => setSoundOn(true))
+      .catch(() => setSoundOn(false));
+  }, []);
+
+  async function startAudio() {
+    const audio = audioRef.current;
+    if (!audio) return;
+    try {
+      await audio.play();
+      setSoundOn(true);
+    } catch {
+      setSoundOn(false);
+    }
+  }
+
+  function toggleSound() {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (soundOn) {
+      audio.pause();
+      setSoundOn(false);
+    } else {
+      void startAudio();
+    }
+  }
 
   async function addEntry(event: FormEvent) {
     event.preventDefault();
@@ -131,6 +164,7 @@ export function ProjectBoard() {
 
   function openProject() {
     if (dissolving) return;
+    if (!soundOn) void startAudio();
     setDissolving(true);
     window.setTimeout(() => {
       setInside(true);
@@ -140,19 +174,39 @@ export function ProjectBoard() {
 
   if (!inside) {
     return (
-      <main className={`landing cover-landing${dissolving ? " is-dissolving" : ""}`}>
-        <div className="cover-shade" aria-hidden="true" />
-        <button className="glass-project-card" onClick={openProject}>
-          <span className="glass-project-number">Проект 01</span>
-          <strong>Легенды Калуги</strong>
-          <span className="glass-project-arrow" aria-hidden="true">→</span>
+      <>
+        <audio ref={audioRef} src="/ambient.mp3" autoPlay loop preload="auto" />
+        <button
+          className={`sound-toggle${soundOn ? " is-on" : " is-off"}`}
+          onClick={toggleSound}
+          aria-label={soundOn ? "Выключить звук" : "Включить звук"}
+          aria-pressed={soundOn}
+        >
+          <span className="sound-glyph" aria-hidden="true">♪</span>
         </button>
-      </main>
+        <main className={`landing cover-landing${dissolving ? " is-dissolving" : ""}`}>
+          <div className="cover-shade" aria-hidden="true" />
+          <button className="glass-project-card" onClick={openProject}>
+            <strong>Легенды Калуги</strong>
+            <span className="glass-project-arrow" aria-hidden="true">→</span>
+          </button>
+        </main>
+      </>
     );
   }
 
   return (
-    <main className="workspace dissolve-in">
+    <>
+      <audio ref={audioRef} src="/ambient.mp3" autoPlay loop preload="auto" />
+      <button
+        className={`sound-toggle${soundOn ? " is-on" : " is-off"}`}
+        onClick={toggleSound}
+        aria-label={soundOn ? "Выключить звук" : "Включить звук"}
+        aria-pressed={soundOn}
+      >
+        <span className="sound-glyph" aria-hidden="true">♪</span>
+      </button>
+      <main className="workspace dissolve-in">
       <header className="workspace-head">
         <button className="back" onClick={() => setInside(false)}>← Все проекты</button>
         <div className="mini-brand"><span className="brand-mark">К</span> Проекты Калуги</div>
@@ -175,17 +229,14 @@ export function ProjectBoard() {
               setEditing(null);
             }}
           >
-            <span>{section.number}</span>{section.title}
+            {section.title}
           </button>
         ))}
       </nav>
 
       <section className="entry-panel">
         <div className="entry-heading">
-          <div>
-            <span className="section-number">{current.number}</span>
-            <h2>{current.title}</h2>
-          </div>
+          <div><h2>{current.title}</h2></div>
           <p>{current.description}</p>
         </div>
 
@@ -246,6 +297,7 @@ export function ProjectBoard() {
         </div>
         {status && <p className="status" role="status">{status}</p>}
       </section>
-    </main>
+      </main>
+    </>
   );
 }
