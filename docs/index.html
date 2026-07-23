@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#07120f" />
+  <title>Легенды Калуги</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <audio id="ambient" src="assets/ambient.mp3" loop preload="auto"></audio>
+  <button id="soundToggle" class="sound-toggle is-off" aria-label="Включить звук" aria-pressed="false"><span>♪</span></button>
+  <main id="cover" class="cover">
+    <button id="openProject" class="glass-card"><strong>Легенды Калуги</strong><span>→</span></button>
+  </main>
+  <main id="project" class="project hidden" aria-hidden="true">
+    <header><button id="back" class="back">← Все проекты</button><b>Проекты Калуги</b><small>● открыто по ссылке</small></header>
+    <section class="intro"><h1>Легенды Калуги</h1><p>Общая тетрадь городской памяти. Выберите раздел и добавьте то, что знаете.</p></section>
+    <nav id="tabs" class="tabs" aria-label="Разделы проекта"></nav>
+    <section class="panel">
+      <div class="heading"><h2 id="sectionTitle"></h2><p id="sectionDescription"></p></div>
+      <form id="entryForm" class="entry-form"><label for="newEntry">Добавить запись</label><div><textarea id="newEntry" rows="2" maxlength="500"></textarea><button aria-label="Добавить запись">→</button></div><small>До 500 знаков · Запись увидят все посетители</small></form>
+      <div class="entries-head"><h3>Собрано вместе</h3><span id="count"></span></div>
+      <div id="entries" class="entries" aria-live="polite"></div><p id="status" class="status" role="status"></p>
+    </section>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
