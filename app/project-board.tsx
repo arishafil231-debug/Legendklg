@@ -43,6 +43,7 @@ type Entry = {
 
 export function ProjectBoard() {
   const [inside, setInside] = useState(false);
+  const [dissolving, setDissolving] = useState(false);
   const [active, setActive] = useState<SectionId>("legends");
   const [entries, setEntries] = useState<Entry[]>([]);
   const [draft, setDraft] = useState("");
@@ -128,53 +129,30 @@ export function ProjectBoard() {
     }
   }
 
+  function openProject() {
+    if (dissolving) return;
+    setDissolving(true);
+    window.setTimeout(() => {
+      setInside(true);
+      setDissolving(false);
+    }, 560);
+  }
+
   if (!inside) {
     return (
-      <main className="landing">
-        <div className="ambient ambient-one" />
-        <div className="ambient ambient-two" />
-        <header className="masthead">
-          <a className="brand" href="#" aria-label="Проекты Калуги">
-            <span className="brand-mark">К</span>
-            <span>Проекты Калуги</span>
-          </a>
-          <span className="access"><i /> открыто по ссылке</span>
-        </header>
-
-        <section className="hero">
-          <p className="eyebrow">Коллекция городских проектов</p>
-          <h1>Место, где город<br /><em>рассказывает о себе</em></h1>
-          <p className="hero-copy">
-            Собираем память, истории и идеи Калуги вместе.
-            Каждый, у кого есть ссылка, может внести свой след.
-          </p>
-        </section>
-
-        <section className="projects" aria-labelledby="projects-title">
-          <div className="section-heading">
-            <h2 id="projects-title">Все проекты</h2>
-            <span>1 проект</span>
-          </div>
-          <button className="project-card" onClick={() => setInside(true)}>
-            <span className="project-index">Проект 01</span>
-            <span className="moon">✦</span>
-            <span className="project-copy">
-              <strong>Легенды<br />Калуги</strong>
-              <small>Городская память, собранная вместе</small>
-            </span>
-            <span className="project-meta">
-              <span>4 раздела</span>
-              <b aria-hidden="true">↗</b>
-            </span>
-          </button>
-        </section>
-        <footer>Калуга · 2026 <span>Храним то, что легко потерять</span></footer>
+      <main className={`landing cover-landing${dissolving ? " is-dissolving" : ""}`}>
+        <div className="cover-shade" aria-hidden="true" />
+        <button className="glass-project-card" onClick={openProject}>
+          <span className="glass-project-number">Проект 01</span>
+          <strong>Легенды Калуги</strong>
+          <span className="glass-project-arrow" aria-hidden="true">→</span>
+        </button>
       </main>
     );
   }
 
   return (
-    <main className="workspace">
+    <main className="workspace dissolve-in">
       <header className="workspace-head">
         <button className="back" onClick={() => setInside(false)}>← Все проекты</button>
         <div className="mini-brand"><span className="brand-mark">К</span> Проекты Калуги</div>
