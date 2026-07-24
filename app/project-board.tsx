@@ -43,6 +43,19 @@ type Entry = {
   createdAt: string;
 };
 
+type UploadStart = { key?: string; uploadId?: string; error?: string };
+type UploadPart = { partNumber?: number; etag?: string; error?: string };
+type UploadComplete = { entry?: Entry; error?: string };
+
+async function uploadResponse<T extends { error?: string }>(response: Response) {
+  const text = await response.text();
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    return { error: response.status === 413 ? "Сервер отклонил слишком большой фрагмент видео." : "Сервер не смог обработать загрузку видео." } as T;
+  }
+}
+
 export function ProjectBoard() {
   const [inside, setInside] = useState(false);
   const [dissolving, setDissolving] = useState(false);
@@ -180,13 +193,36 @@ export function ProjectBoard() {
     setUploadingId(id);
     setStatus("Загружаем видео…");
     try {
-      const form = new FormData();
-      form.append("entryId", String(id));
-      form.append("video", file);
-      const response = await fetch("/api/videos", { method: "POST", body: form });
-      const data = (await response.json()) as { entry?: Entry; error?: string };
-      if (!response.ok || !data.entry) throw new Error(data.error ?? "Не удалось прикрепить видео.");
-      setEntries((items) => items.map((item) => item.id === id ? data.entry! : item));
+      const startResponse = await fetch("/api/videos?upload=start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ entryId: id, name: file.name, type: file.type, size: file.size }),
+      });
+      const start = await uploadResponse<UploadStart>(startResponse);
+      if (!startResponse.ok || !start.key || !start.uploadId) throw new Error(start.error ?? "Не удалось начать загрузку видео.");
+
+      const chunkSize = 6 * 1024 * 1024;
+      const parts: { partNumber: number; etag: string }[] = [];
+      for (let offset = 0, partNumber = 1; offset < file.size; offset += chunkSize, partNumber += 1) {
+        const chunk = file.slice(offset, Math.min(offset + chunkSize, file.size));
+        const response = await fetch(`/api/videos?upload=part&key=${encodeURIComponent(start.key)}&uploadId=${encodeURIComponent(start.uploadId)}&partNumber=${partNumber}`, {
+          method: "POST",
+          body: chunk,
+        });
+        const part = await uploadResponse<UploadPart>(response);
+        if (!response.ok || !part.etag || !part.partNumber) throw new Error(part.error ?? "Не удалось загрузить фрагмент видео.");
+        parts.push({ partNumber: part.partNumber, etag: part.etag });
+        setStatus(`Загружаем видео… ${Math.round(Math.min(offset + chunkSize, file.size) / file.size * 100)}%`);
+      }
+
+      const completeResponse = await fetch("/api/videos?upload=complete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ entryId: id, key: start.key, uploadId: start.uploadId, parts }),
+      });
+      const complete = await uploadResponse<UploadComplete>(completeResponse);
+      if (!completeResponse.ok || !complete.entry) throw new Error(complete.error ?? "Не удалось завершить загрузку видео.");
+      setEntries((items) => items.map((item) => item.id === id ? complete.entry! : item));
       setStatus("Видео прикреплено");
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Не удалось прикрепить видео. Попробуйте ещё раз.");
