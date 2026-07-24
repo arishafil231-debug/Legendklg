@@ -407,12 +407,24 @@ footer { border-top: 1px solid var(--line); padding: 28px 0; color: var(--mist);
 .form-note { color: rgba(232, 223, 199, .55); font-size: .65rem; display: flex; justify-content: space-between; margin-top: 12px; }
 
 .entries-head { border-bottom: 1px solid var(--line); padding-bottom: 16px; }
-.entries { display: grid; }
-.entry { border-bottom: 1px solid var(--line); padding: 27px 0 22px; }
-.entry > p { font: 400 1.2rem/1.55 Georgia, serif; margin: 0 0 20px; }
+.entries { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; }
+.entry { min-width: 0; }
+.project-entry { display: flex; flex-direction: column; min-height: 250px; padding: 20px; border: 1px solid rgba(232, 223, 199, .2); border-radius: 16px; background: linear-gradient(135deg, rgba(232, 223, 199, .13), rgba(16, 37, 29, .35)); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .12), 0 14px 38px rgba(0,0,0,.14); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+.project-entry h3 { margin: 0 0 18px; color: var(--paper); font: 400 clamp(1.15rem, 1.7vw, 1.65rem)/1.1 Georgia, "Times New Roman", serif; overflow-wrap: anywhere; }
 .entry-foot { display: flex; justify-content: space-between; color: var(--mist); font-size: .68rem; gap: 14px; }
-.entry-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.entry-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.made-by { color: var(--mist); }
 .author-chip { padding: 6px 10px; border: 1px solid rgba(232,223,199,.2); border-radius: 999px; background: linear-gradient(135deg, rgba(232,223,199,.1), rgba(16,37,29,.28)); color: var(--paper); box-shadow: inset 0 1px 0 rgba(255,255,255,.1); backdrop-filter: blur(12px); }
+.video-area { display: grid; place-items: center; flex: 1; min-height: 72px; margin: 18px 0; border: 1px solid rgba(232,223,199,.12); border-radius: 11px; background: rgba(2, 11, 9, .22); color: var(--mist); font-size: .72rem; text-align: center; }
+.video-area p { margin: 0; padding: 14px; }
+.video-area video { width: 100%; border-radius: 10px; max-height: 180px; background: #030907; }
+.entry-actions { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: var(--mist); font-size: .68rem; }
+.entry-actions > span { white-space: nowrap; }
+.entry-actions button { border: 0; background: none; color: var(--mist); cursor: pointer; margin-left: 10px; padding: 0; }
+.entry-actions button:hover { color: var(--gold); }
+.video-upload { display: inline-flex; align-items: center; min-height: 31px; padding: 7px 9px; border: 1px solid rgba(232,223,199,.2); border-radius: 9px; background: linear-gradient(135deg, rgba(232,223,199,.1), rgba(16,37,29,.28)); color: var(--paper); cursor: pointer; white-space: nowrap; }
+.video-upload input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.video-upload.is-uploading { opacity: .65; cursor: wait; }
 .entry-foot button { border: 0; background: none; color: var(--mist); cursor: pointer; margin-left: 15px; padding: 0; }
 .entry-foot button:hover { color: var(--gold); }
 .edit-row { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; }
@@ -452,6 +464,7 @@ footer { border-top: 1px solid var(--line); padding: 28px 0; color: var(--mist);
   .section-tabs { padding: 14px; gap: 10px; grid-template-columns: 1fr 1fr; }
   .section-tabs button { min-height: 70px; padding: 0 15px; font-size: .82rem; }
   .entry-panel { padding-top: 50px; }
+  .entries { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .entry-heading { grid-template-columns: 1fr; gap: 22px; }
   .entry-form { padding: 20px; }
   .author-control { align-items: flex-start; flex-direction: column; gap: 8px; }
@@ -459,6 +472,10 @@ footer { border-top: 1px solid var(--line); padding: 28px 0; color: var(--mist);
   .form-note span:last-child { display: none; }
   .edit-row { grid-template-columns: 1fr 1fr; }
   .edit-row textarea { grid-column: 1 / -1; }
+}
+
+@media (min-width: 761px) and (max-width: 1200px) {
+  .entries { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
 @media (prefers-reduced-motion: reduce) {

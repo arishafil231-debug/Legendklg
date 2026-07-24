@@ -37,6 +37,8 @@ type Entry = {
   section: SectionId;
   content: string;
   author: string;
+  hasVideo: boolean;
+  videoUrl?: string;
   createdAt: string;
 };
 
@@ -51,12 +53,15 @@ export function ProjectBoard() {
   const [author, setAuthor] = useState<(typeof authors)[number]>(authors[0]);
   const [editing, setEditing] = useState<number | null>(null);
   const [editText, setEditText] = useState("");
+  const [uploadingId, setUploadingId] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState("Загружаем городскую память…");
 
   const current = sections.find((section) => section.id === active)!;
   const visibleEntries = useMemo(
-    () => entries.filter((entry) => entry.section === active),
+    () => entries
+      .filter((entry) => entry.section === active)
+      .sort((a, b) => a.content.localeCompare(b.content, "ru", { sensitivity: "base" })),
     [entries, active],
   );
 
@@ -162,6 +167,29 @@ export function ProjectBoard() {
     }
   }
 
+  async function uploadVideo(id: number, file: File) {
+    if (!file.type.startsWith("video/") || file.size > 100 * 1024 * 1024) {
+      setStatus("Выберите видеофайл размером до 100 МБ.");
+      return;
+    }
+    setUploadingId(id);
+    setStatus("Загружаем видео…");
+    try {
+      const form = new FormData();
+      form.append("entryId", String(id));
+      form.append("video", file);
+      const response = await fetch("/api/videos", { method: "POST", body: form });
+      if (!response.ok) throw new Error();
+      const data = (await response.json()) as { entry: Entry };
+      setEntries((items) => items.map((item) => item.id === id ? data.entry : item));
+      setStatus("Видео прикреплено");
+    } catch {
+      setStatus("Не удалось прикрепить видео. Попробуйте ещё раз.");
+    } finally {
+      setUploadingId(null);
+    }
+  }
+
   function openProject() {
     if (dissolving) return;
     if (!soundOn) void startAudio();
@@ -240,7 +268,7 @@ export function ProjectBoard() {
         </div>
 
         <form className="entry-form" onSubmit={addEntry}>
-          <label htmlFor="new-entry">Добавить запись</label>
+          <label htmlFor="new-entry">Название записи</label>
           <div className="entry-control">
             <textarea
               id="new-entry"
@@ -278,7 +306,7 @@ export function ProjectBoard() {
             </div>
           )}
           {visibleEntries.map((entry) => (
-            <article className="entry" key={entry.id}>
+            <article className="entry project-entry" key={entry.id}>
               {editing === entry.id ? (
                 <div className="edit-row">
                   <textarea value={editText} onChange={(event) => setEditText(event.target.value)} maxLength={500} />
@@ -287,9 +315,31 @@ export function ProjectBoard() {
                 </div>
               ) : (
                 <>
-                  <p>{entry.content}</p>
+                  <h3>{entry.content}</h3>
                   <div className="entry-foot">
-                    <span className="entry-meta"><time>{new Date(entry.createdAt).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" })}</time>{entry.author && <span className="author-chip">{entry.author}</span>}</span>
+                    <span className="entry-meta"><span className="made-by">Сделал(а)</span>{entry.author && <span className="author-chip">{entry.author}</span>}</span>
+                  </div>
+                  <div className="video-area">
+                    {entry.hasVideo && entry.videoUrl ? (
+                      <video controls preload="metadata" src={entry.videoUrl}>Ваш браузер не поддерживает видео.</video>
+                    ) : (
+                      <p>Видеофайлов пока нет</p>
+                    )}
+                  </div>
+                  <div className="entry-actions">
+                    <label className={`video-upload${uploadingId === entry.id ? " is-uploading" : ""}`}>
+                      <input
+                        type="file"
+                        accept="video/*"
+                        disabled={uploadingId !== null}
+                        onChange={(event) => {
+                          const file = event.currentTarget.files?.[0];
+                          if (file) void uploadVideo(entry.id, file);
+                          event.currentTarget.value = "";
+                        }}
+                      />
+                      {uploadingId === entry.id ? "Загрузка…" : entry.hasVideo ? "Заменить видео" : "Прикрепить видео"}
+                    </label>
                     <span>
                       <button onClick={() => { setEditing(entry.id); setEditText(entry.content); }}>Изменить</button>
                       <button onClick={() => removeEntry(entry.id)}>Удалить</button>

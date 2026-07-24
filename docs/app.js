@@ -1,24 +1,29 @@
 const API = "https://legendy-kalugi.kibervagonetkaalekse.chatgpt.site/api/entries";
+const API_ORIGIN = new URL(API).origin;
 const sections = [
   ["legends", "Легенды", "Городские предания, слухи и истории, которые передают из уст в уста.", "Например: говорят, что в старом доме на Воскресенской…"],
   ["history", "История", "События, места и люди, из которых складывается летопись города.", "Например: в этом здании до революции находилась…"],
   ["identity", "Идентичность", "Что делает Калугу Калугой: слова, привычки, места и характер.", "Например: для меня Калуга — это…"],
   ["made", "Сделано в Калуге", "Люди, мастерские, продукты и идеи, созданные здесь.", "Например: название проекта, мастерской или инициативы…"],
 ];
+const authors = ["Алёна", "Даниил", "Владимир", "Арина", "Михаил", "Филипп"];
 
 let active = "legends";
 let entries = [];
 let editing = null;
+let uploadingId = null;
 const $ = (selector) => document.querySelector(selector);
-const authors = ["Алёна", "Даниил", "Владимир", "Арина", "Михаил", "Филипп"];
 const current = () => sections.find(([id]) => id === active);
 const setStatus = (text = "") => { $("#status").textContent = text; };
+const withVideoUrl = (entry) => entry.videoUrl ? { ...entry, videoUrl: `${API_ORIGIN}${entry.videoUrl}` } : entry;
 
 function setupAuthorControl() {
   const form = $("#entryForm");
   const submit = form.querySelector('button[type="submit"], button:not([type])');
   submit.classList.add("confirm-entry");
   submit.textContent = "✓";
+  form.querySelector("label[for='newEntry']").textContent = "Название записи";
+
   const control = document.createElement("div");
   control.className = "author-control";
   const label = document.createElement("label");
@@ -59,9 +64,27 @@ function renderTabs() {
   });
 }
 
+function uploadControl(entry) {
+  const label = document.createElement("label");
+  label.className = `video-upload${uploadingId === entry.id ? " is-uploading" : ""}`;
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "video/*";
+  input.disabled = uploadingId !== null;
+  input.onchange = () => {
+    const file = input.files?.[0];
+    if (file) void uploadVideo(entry.id, file);
+    input.value = "";
+  };
+  label.append(input, document.createTextNode(uploadingId === entry.id ? "Загрузка…" : entry.hasVideo ? "Заменить видео" : "Прикрепить видео"));
+  return label;
+}
+
 function renderEntries() {
   const list = $("#entries");
-  const visible = entries.filter((entry) => entry.section === active);
+  const visible = entries
+    .filter((entry) => entry.section === active)
+    .sort((a, b) => a.content.localeCompare(b.content, "ru", { sensitivity: "base" }));
   $("#count").textContent = `${visible.length} ${visible.length === 1 ? "запись" : "записей"}`;
   list.replaceChildren();
   if (!visible.length) {
@@ -73,7 +96,7 @@ function renderEntries() {
   }
   visible.forEach((entry) => {
     const article = document.createElement("article");
-    article.className = "entry";
+    article.className = "entry project-entry";
     if (editing === entry.id) {
       const row = document.createElement("div");
       row.className = "edit";
@@ -89,31 +112,50 @@ function renderEntries() {
       row.append(area, save, cancel);
       article.append(row);
     } else {
-      const text = document.createElement("p");
-      text.textContent = entry.content;
+      const title = document.createElement("h3");
+      title.textContent = entry.content;
       const footer = document.createElement("div");
       footer.className = "entry-foot";
-      const date = document.createElement("time");
-      date.textContent = new Date(entry.createdAt).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" });
-      const actions = document.createElement("span");
-      const edit = document.createElement("button");
-      edit.textContent = "Изменить";
-      edit.onclick = () => { editing = entry.id; renderEntries(); };
-      const remove = document.createElement("button");
-      remove.textContent = "Удалить";
-      remove.onclick = () => deleteEntry(entry.id);
-      actions.append(edit, remove);
       const meta = document.createElement("span");
       meta.className = "entry-meta";
-      meta.append(date);
+      const madeBy = document.createElement("span");
+      madeBy.className = "made-by";
+      madeBy.textContent = "Сделал(а)";
+      meta.append(madeBy);
       if (entry.author) {
         const author = document.createElement("span");
         author.className = "author-chip";
         author.textContent = entry.author;
         meta.append(author);
       }
-      footer.append(meta, actions);
-      article.append(text, footer);
+      footer.append(meta);
+
+      const videoArea = document.createElement("div");
+      videoArea.className = "video-area";
+      if (entry.hasVideo && entry.videoUrl) {
+        const video = document.createElement("video");
+        video.controls = true;
+        video.preload = "metadata";
+        video.src = entry.videoUrl;
+        videoArea.append(video);
+      } else {
+        const noVideo = document.createElement("p");
+        noVideo.textContent = "Видеофайлов пока нет";
+        videoArea.append(noVideo);
+      }
+
+      const actions = document.createElement("div");
+      actions.className = "entry-actions";
+      const textActions = document.createElement("span");
+      const edit = document.createElement("button");
+      edit.textContent = "Изменить";
+      edit.onclick = () => { editing = entry.id; renderEntries(); };
+      const remove = document.createElement("button");
+      remove.textContent = "Удалить";
+      remove.onclick = () => deleteEntry(entry.id);
+      textActions.append(edit, remove);
+      actions.append(uploadControl(entry), textActions);
+      article.append(title, footer, videoArea, actions);
     }
     list.append(article);
   });
@@ -131,11 +173,36 @@ function render() {
 async function load() {
   setStatus("Загружаем городскую память…");
   try {
-    entries = (await api("GET")).entries;
+    entries = (await api("GET")).entries.map(withVideoUrl);
     setStatus();
     render();
   } catch {
     setStatus("Не удалось загрузить записи. Обновите страницу.");
+  }
+}
+
+async function uploadVideo(id, file) {
+  if (!file.type.startsWith("video/") || file.size > 100 * 1024 * 1024) {
+    setStatus("Выберите видеофайл размером до 100 МБ.");
+    return;
+  }
+  uploadingId = id;
+  setStatus("Загружаем видео…");
+  renderEntries();
+  try {
+    const form = new FormData();
+    form.append("entryId", String(id));
+    form.append("video", file);
+    const response = await fetch(`${API_ORIGIN}/api/videos`, { method: "POST", body: form });
+    if (!response.ok) throw new Error();
+    const { entry } = await response.json();
+    entries = entries.map((item) => item.id === id ? withVideoUrl(entry) : item);
+    setStatus("Видео прикреплено");
+  } catch {
+    setStatus("Не удалось прикрепить видео. Попробуйте ещё раз.");
+  } finally {
+    uploadingId = null;
+    renderEntries();
   }
 }
 
@@ -169,11 +236,11 @@ $("#entryForm").addEventListener("submit", async (event) => {
   try {
     const author = $("#entryAuthor").value;
     const { entry } = await api("POST", { section: active, content, author });
-    entries.unshift(entry);
+    entries.unshift(withVideoUrl(entry));
     area.value = "";
     setStatus("Запись добавлена");
     renderEntries();
-  } catch { setStatus("Не удалось сохранить. Попробуйте ещё раз."); }
+  } catch { setStatus("Не удалось сохранить запись. Попробуйте ещё раз."); }
 });
 
 const audio = $("#ambient");

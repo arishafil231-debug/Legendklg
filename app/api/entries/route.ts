@@ -19,12 +19,16 @@ async function ensureTable() {
       section TEXT NOT NULL,
       content TEXT NOT NULL,
       author TEXT NOT NULL DEFAULT '',
+      video_key TEXT,
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     )
   `).run();
   const columns = await env.DB.prepare("PRAGMA table_info(entries)").all<{ name: string }>();
   if (!columns.results.some((column) => column.name === "author")) {
     await env.DB.prepare("ALTER TABLE entries ADD COLUMN author TEXT NOT NULL DEFAULT ''").run();
+  }
+  if (!columns.results.some((column) => column.name === "video_key")) {
+    await env.DB.prepare("ALTER TABLE entries ADD COLUMN video_key TEXT").run();
   }
 }
 
@@ -36,9 +40,15 @@ export async function GET() {
   try {
     await ensureTable();
     const result = await env.DB.prepare(
-      "SELECT id, section, content, author, created_at AS createdAt FROM entries ORDER BY id DESC LIMIT 500",
-    ).all();
-    return json({ entries: result.results });
+      "SELECT id, section, content, author, video_key AS videoKey, created_at AS createdAt FROM entries ORDER BY id DESC LIMIT 500",
+    ).all<Record<string, unknown>>();
+    return json({
+      entries: result.results.map((entry) => ({
+        ...entry,
+        hasVideo: Boolean(entry.videoKey),
+        videoUrl: entry.videoKey ? `/api/videos?id=${entry.id}` : undefined,
+      })),
+    });
   } catch {
     return json({ error: "Не удалось загрузить записи" }, { status: 500 });
   }
@@ -56,9 +66,9 @@ export async function POST(request: Request) {
     }
     await ensureTable();
     const result = await env.DB.prepare(
-      "INSERT INTO entries (section, content, author) VALUES (?, ?, ?) RETURNING id, section, content, author, created_at AS createdAt",
+      "INSERT INTO entries (section, content, author) VALUES (?, ?, ?) RETURNING id, section, content, author, NULL AS videoKey, created_at AS createdAt",
     ).bind(section, content, author).first();
-    return json({ entry: result }, { status: 201 });
+    return json({ entry: { ...result, hasVideo: false } }, { status: 201 });
   } catch {
     return json({ error: "Не удалось сохранить запись" }, { status: 500 });
   }
@@ -85,7 +95,9 @@ export async function DELETE(request: Request) {
     const id = Number(new URL(request.url).searchParams.get("id"));
     if (!Number.isInteger(id)) return json({ error: "Некорректная запись" }, { status: 400 });
     await ensureTable();
+    const entry = await env.DB.prepare("SELECT video_key AS videoKey FROM entries WHERE id = ?").bind(id).first<{ videoKey: string | null }>();
     await env.DB.prepare("DELETE FROM entries WHERE id = ?").bind(id).run();
+    if (entry?.videoKey) await env.VIDEOS.delete(entry.videoKey);
     return json({ ok: true });
   } catch {
     return json({ error: "Не удалось удалить запись" }, { status: 500 });
