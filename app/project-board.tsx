@@ -30,6 +30,7 @@ const sections = [
 ] as const;
 
 const authors = ["Алёна", "Даниил", "Владимир", "Арина", "Михаил", "Филипп"] as const;
+const videoExtensions = /\.(mp4|m4v|mov|webm|avi)$/i;
 
 type SectionId = (typeof sections)[number]["id"];
 type Entry = {
@@ -168,8 +169,12 @@ export function ProjectBoard() {
   }
 
   async function uploadVideo(id: number, file: File) {
-    if (!file.type.startsWith("video/") || file.size > 100 * 1024 * 1024) {
-      setStatus("Выберите видеофайл размером до 100 МБ.");
+    if (!(file.type.startsWith("video/") || videoExtensions.test(file.name))) {
+      setStatus("Поддерживаются видео MP4, MOV, WebM, M4V и AVI.");
+      return;
+    }
+    if (file.size > 100 * 1024 * 1024) {
+      setStatus("Размер видео не должен превышать 100 МБ.");
       return;
     }
     setUploadingId(id);
@@ -179,12 +184,12 @@ export function ProjectBoard() {
       form.append("entryId", String(id));
       form.append("video", file);
       const response = await fetch("/api/videos", { method: "POST", body: form });
-      if (!response.ok) throw new Error();
-      const data = (await response.json()) as { entry: Entry };
-      setEntries((items) => items.map((item) => item.id === id ? data.entry : item));
+      const data = (await response.json()) as { entry?: Entry; error?: string };
+      if (!response.ok || !data.entry) throw new Error(data.error ?? "Не удалось прикрепить видео.");
+      setEntries((items) => items.map((item) => item.id === id ? data.entry! : item));
       setStatus("Видео прикреплено");
-    } catch {
-      setStatus("Не удалось прикрепить видео. Попробуйте ещё раз.");
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "Не удалось прикрепить видео. Попробуйте ещё раз.");
     } finally {
       setUploadingId(null);
     }

@@ -7,6 +7,7 @@ const sections = [
   ["made", "Сделано в Калуге", "Люди, мастерские, продукты и идеи, созданные здесь.", "Например: название проекта, мастерской или инициативы…"],
 ];
 const authors = ["Алёна", "Даниил", "Владимир", "Арина", "Михаил", "Филипп"];
+const videoExtensions = /\.(mp4|m4v|mov|webm|avi)$/i;
 
 let active = "legends";
 let entries = [];
@@ -182,8 +183,12 @@ async function load() {
 }
 
 async function uploadVideo(id, file) {
-  if (!file.type.startsWith("video/") || file.size > 100 * 1024 * 1024) {
-    setStatus("Выберите видеофайл размером до 100 МБ.");
+  if (!(file.type.startsWith("video/") || videoExtensions.test(file.name))) {
+    setStatus("Поддерживаются видео MP4, MOV, WebM, M4V и AVI.");
+    return;
+  }
+  if (file.size > 100 * 1024 * 1024) {
+    setStatus("Размер видео не должен превышать 100 МБ.");
     return;
   }
   uploadingId = id;
@@ -194,12 +199,13 @@ async function uploadVideo(id, file) {
     form.append("entryId", String(id));
     form.append("video", file);
     const response = await fetch(`${API_ORIGIN}/api/videos`, { method: "POST", body: form });
-    if (!response.ok) throw new Error();
-    const { entry } = await response.json();
+    const data = await response.json();
+    if (!response.ok || !data.entry) throw new Error(data.error ?? "Не удалось прикрепить видео.");
+    const { entry } = data;
     entries = entries.map((item) => item.id === id ? withVideoUrl(entry) : item);
     setStatus("Видео прикреплено");
-  } catch {
-    setStatus("Не удалось прикрепить видео. Попробуйте ещё раз.");
+  } catch (error) {
+    setStatus(error instanceof Error ? error.message : "Не удалось прикрепить видео. Попробуйте ещё раз.");
   } finally {
     uploadingId = null;
     renderEntries();
