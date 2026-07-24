@@ -319,13 +319,13 @@ button { color: inherit; }
 
 footer { border-top: 1px solid var(--line); padding: 28px 0; color: var(--mist); font-size: .65rem; text-transform: uppercase; letter-spacing: .15em; display: flex; justify-content: space-between; }
 
-.workspace { background: #0a1512; }
+.workspace { min-height: 100vh; background: #0a1512; }
 .workspace-head { padding: 0 5vw; }
 .back { background: none; border: 0; padding: 10px 0; cursor: pointer; color: var(--mist); }
 .back:hover { color: var(--paper); }
 
 .project-intro {
-  padding: 72px 5vw 50px;
+  padding: 42px 5vw 30px;
   display: grid;
   grid-template-columns: 1fr 1fr;
   align-items: end;
@@ -366,8 +366,8 @@ footer { border-top: 1px solid var(--line); padding: 28px 0; color: var(--mist);
   outline: none;
 }
 
-.entry-panel { width: min(900px, 90vw); margin: 0 auto; padding: 78px 0 100px; }
-.entry-heading { display: grid; grid-template-columns: 1fr 1fr; align-items: end; margin-bottom: 56px; }
+.entry-panel { width: 100%; margin: 0 auto; padding: 42px 4vw 54px; }
+.entry-heading { display: grid; grid-template-columns: 1fr 1fr; align-items: end; margin-bottom: 30px; }
 .entry-heading > div { display: flex; gap: 20px; align-items: start; }
 .entry-heading h2 { font: 400 clamp(2.8rem, 6vw, 5rem)/1 Georgia, serif; margin: 0; }
 .section-number { color: var(--gold); font-size: .7rem; padding-top: 8px; }
@@ -382,7 +382,7 @@ footer { border-top: 1px solid var(--line); padding: 28px 0; color: var(--mist);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   padding: 28px;
-  margin-bottom: 64px;
+  margin-bottom: 38px;
 }
 .entry-form label { display: block; text-transform: uppercase; letter-spacing: .16em; font-size: .63rem; margin-bottom: 16px; }
 .entry-control { display: flex; align-items: stretch; border-bottom: 1px solid rgba(232, 223, 199, .25); }
@@ -407,10 +407,10 @@ footer { border-top: 1px solid var(--line); padding: 28px 0; color: var(--mist);
 .form-note { color: rgba(232, 223, 199, .55); font-size: .65rem; display: flex; justify-content: space-between; margin-top: 12px; }
 
 .entries-head { border-bottom: 1px solid var(--line); padding-bottom: 16px; }
-.entries { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; }
+.entries { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 18px; }
 .entry { min-width: 0; }
-.project-entry { display: flex; flex-direction: column; min-height: 250px; padding: 20px; border: 1px solid rgba(232, 223, 199, .2); border-radius: 16px; background: linear-gradient(135deg, rgba(232, 223, 199, .13), rgba(16, 37, 29, .35)); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .12), 0 14px 38px rgba(0,0,0,.14); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
-.project-entry h3 { margin: 0 0 18px; color: var(--paper); font: 400 clamp(1.15rem, 1.7vw, 1.65rem)/1.1 Georgia, "Times New Roman", serif; overflow-wrap: anywhere; }
+.project-entry { display: flex; flex-direction: column; min-height: 280px; padding: 22px; border: 1px solid rgba(232, 223, 199, .2); border-radius: 16px; background: linear-gradient(135deg, rgba(232, 223, 199, .13), rgba(16, 37, 29, .35)); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .12), 0 14px 38px rgba(0,0,0,.14); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+.project-entry h3 { min-height: 2.32em; margin: 0 0 16px; color: var(--paper); font: 400 clamp(1.15rem, 1.45vw, 1.65rem)/1.16 Georgia, "Times New Roman", serif; hyphens: none; overflow-wrap: normal; word-break: normal; text-wrap: pretty; }
 .entry-foot { display: flex; justify-content: space-between; color: var(--mist); font-size: .68rem; gap: 14px; }
 .entry-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
 .made-by { color: var(--mist); }
@@ -418,11 +418,11 @@ footer { border-top: 1px solid var(--line); padding: 28px 0; color: var(--mist);
 .video-area { display: grid; place-items: center; flex: 1; min-height: 72px; margin: 18px 0; border: 1px solid rgba(232,223,199,.12); border-radius: 11px; background: rgba(2, 11, 9, .22); color: var(--mist); font-size: .72rem; text-align: center; }
 .video-area p { margin: 0; padding: 14px; }
 .video-area video { width: 100%; border-radius: 10px; max-height: 180px; background: #030907; }
-.entry-actions { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: var(--mist); font-size: .68rem; }
-.entry-actions > span { white-space: nowrap; }
-.entry-actions button { border: 0; background: none; color: var(--mist); cursor: pointer; margin-left: 10px; padding: 0; }
+.entry-actions { display: grid; grid-template-columns: 1fr; gap: 8px; color: var(--mist); font-size: .68rem; }
+.entry-actions > span { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.entry-actions button { min-width: 0; border: 1px solid rgba(232,223,199,.16); border-radius: 8px; background: rgba(4,15,12,.18); color: var(--mist); cursor: pointer; margin: 0; padding: 8px 4px; }
 .entry-actions button:hover { color: var(--gold); }
-.video-upload { display: inline-flex; align-items: center; min-height: 31px; padding: 7px 9px; border: 1px solid rgba(232,223,199,.2); border-radius: 9px; background: linear-gradient(135deg, rgba(232,223,199,.1), rgba(16,37,29,.28)); color: var(--paper); cursor: pointer; white-space: nowrap; }
+.video-upload { display: inline-flex; align-items: center; justify-content: center; width: 100%; min-height: 35px; padding: 7px 9px; border: 1px solid rgba(232,223,199,.2); border-radius: 9px; background: linear-gradient(135deg, rgba(232,223,199,.1), rgba(16,37,29,.28)); color: var(--paper); cursor: pointer; white-space: nowrap; }
 .video-upload input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 .video-upload.is-uploading { opacity: .65; cursor: wait; }
 .entry-foot button { border: 0; background: none; color: var(--mist); cursor: pointer; margin-left: 15px; padding: 0; }
@@ -474,8 +474,15 @@ footer { border-top: 1px solid var(--line); padding: 28px 0; color: var(--mist);
   .edit-row textarea { grid-column: 1 / -1; }
 }
 
-@media (min-width: 761px) and (max-width: 1200px) {
+@media (min-width: 761px) and (max-width: 1099px) {
   .entries { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (min-width: 1000px) and (min-aspect-ratio: 16 / 10) {
+  .workspace { min-height: 100vh; }
+  .project-intro { padding-top: 30px; padding-bottom: 22px; }
+  .section-tabs { padding-top: 14px; padding-bottom: 14px; }
+  .entry-panel { padding-top: 30px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
