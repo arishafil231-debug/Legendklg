@@ -41,7 +41,7 @@
 
 .author-control select:focus { border-color: rgba(199,154,85,.65); }
 .author-control option { color: var(--ink); background: var(--paper); }
-.entry-foot { gap: 14px; }
+.entry-foot { position: relative; z-index: 2; gap: 14px; text-shadow: 0 1px 7px rgba(0,0,0,.76); }
 .entry-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
 .author-chip {
   padding: 6px 10px;
@@ -59,19 +59,21 @@
 .heading { margin-bottom: 30px; }
 .entry-form { margin-bottom: 38px; }
 .entries { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 18px; }
-.entry.project-entry { display: flex; flex-direction: column; min-width: 0; min-height: 280px; padding: 22px; border: 1px solid rgba(232, 223, 199, .2); border-radius: 16px; background: linear-gradient(135deg, rgba(232, 223, 199, .13), rgba(16, 37, 29, .35)); box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 14px 38px rgba(0,0,0,.14); backdrop-filter: blur(16px); }
-.project-entry h3 { min-height: 2.32em; margin: 0 0 16px; color: var(--paper); font: 400 clamp(1.15rem, 1.45vw, 1.65rem)/1.16 Georgia, serif; hyphens: none; overflow-wrap: normal; word-break: normal; text-wrap: pretty; }
+.entry.project-entry { position: relative; isolation: isolate; display: flex; flex-direction: column; aspect-ratio: 9 / 16; min-width: 0; min-height: 0; padding: 18px; overflow: hidden; border: 1px solid rgba(232, 223, 199, .2); border-radius: 16px; background: linear-gradient(135deg, rgba(232, 223, 199, .13), rgba(16, 37, 29, .35)); box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 14px 38px rgba(0,0,0,.14); backdrop-filter: blur(16px); }
+.project-entry h3 { position: relative; z-index: 2; min-height: 2.32em; margin: 0 0 10px; color: var(--paper); font: 400 clamp(1rem, 1.35vw, 1.55rem)/1.16 Georgia, serif; hyphens: none; overflow-wrap: normal; word-break: normal; text-wrap: pretty; text-shadow: 0 2px 10px rgba(0,0,0,.76); }
 .made-by { color: var(--mist); }
-.video-area { display: grid; place-items: center; flex: 1; min-height: 72px; margin: 18px 0; border: 1px solid rgba(232,223,199,.12); border-radius: 11px; background: rgba(2,11,9,.22); color: var(--mist); font-size: .72rem; text-align: center; }
-.video-area p { margin: 0; padding: 14px; }
-.video-area video { width: 100%; max-height: 180px; border-radius: 10px; background: #030907; }
-.entry-actions { display: grid; grid-template-columns: 1fr; gap: 8px; color: var(--mist); font-size: .68rem; }
+.video-area { position: absolute; z-index: 0; inset: 0; display: grid; place-items: center; margin: 0; overflow: hidden; background: rgba(2,11,9,.55); color: var(--mist); font-size: .72rem; text-align: center; }
+.video-area::after { position: absolute; inset: 0; content: ""; pointer-events: none; background: linear-gradient(180deg, rgba(3,9,7,.72) 0%, rgba(3,9,7,.1) 42%, rgba(3,9,7,.08) 70%, rgba(3,9,7,.34) 100%); }
+.video-area p { position: relative; z-index: 1; margin: 0; padding: 14px; }
+.video-area video { width: 100%; height: 100%; max-height: none; border-radius: 0; background: #030907; object-fit: cover; }
+.entry-actions { position: relative; z-index: 2; display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 12px; color: var(--mist); font-size: .68rem; }
 .entry-actions > span { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .entry-actions button { min-width: 0; border: 1px solid rgba(232,223,199,.16); border-radius: 8px; background: rgba(4,15,12,.18); color: var(--mist); cursor: pointer; margin: 0; padding: 8px 4px; }
 .entry-actions button:hover { color: var(--gold); }
 .video-upload { display: inline-flex; align-items: center; justify-content: center; width: 100%; min-height: 35px; padding: 7px 9px; border: 1px solid rgba(232,223,199,.2); border-radius: 9px; background: linear-gradient(135deg, rgba(232,223,199,.1), rgba(16,37,29,.28)); color: var(--paper); cursor: pointer; white-space: nowrap; }
 .video-upload input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 .video-upload.is-uploading { opacity: .65; cursor: wait; }
+.project-entry:has(.video-area video) { background: #030907; }
 
 @media (max-width: 760px) {
   .entry-form > div.author-control { align-items: flex-start; flex-direction: column; gap: 8px; }
