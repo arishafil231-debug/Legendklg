@@ -144,9 +144,15 @@ function renderEntries() {
       videoArea.className = "video-area";
       if (entry.hasVideo && entry.videoUrl) {
         const video = document.createElement("video");
-        video.controls = true;
+        video.muted = true;
+        video.playsInline = true;
         video.preload = "metadata";
         video.src = entry.videoUrl;
+        video.onmouseenter = () => { void video.play().catch(() => undefined); };
+        video.onmouseleave = () => {
+          video.pause();
+          video.currentTime = 0;
+        };
         videoArea.append(video);
       } else {
         const noVideo = document.createElement("p");

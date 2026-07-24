@@ -362,7 +362,17 @@ export function ProjectBoard() {
                   </div>
                   <div className="video-area">
                     {entry.hasVideo && entry.videoUrl ? (
-                      <video controls preload="metadata" src={entry.videoUrl}>Ваш браузер не поддерживает видео.</video>
+                      <video
+                        muted
+                        playsInline
+                        preload="metadata"
+                        src={entry.videoUrl}
+                        onMouseEnter={(event) => { void event.currentTarget.play().catch(() => undefined); }}
+                        onMouseLeave={(event) => {
+                          event.currentTarget.pause();
+                          event.currentTarget.currentTime = 0;
+                        }}
+                      >Ваш браузер не поддерживает видео.</video>
                     ) : (
                       <p>Видеофайлов пока нет</p>
                     )}
