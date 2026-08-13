@@ -107,12 +107,41 @@
 .meta-disclaimer { position: fixed; z-index: 55; bottom: 18px; left: 24px; max-width: min(440px, calc(100vw - 110px)); margin: 0; color: rgba(232,223,199,.6); font-size: .55rem; line-height: 1.35; pointer-events: none; }
 
 @media (max-width: 760px) {
+  html, body { min-height: 100%; overscroll-behavior-x: none; }
+  .cover, .project { min-height: 100svh; overflow-x: clip; }
+  header { height: 66px; padding: 0 16px; gap: 8px; }
+  header .back { min-width: 0; padding: 12px 0; font-size: .69rem; white-space: nowrap; }
+  header b { min-width: 0; overflow: hidden; font-size: .54rem; letter-spacing: .09em; white-space: nowrap; }
+  .workspace-tools { gap: 0; flex: 0 0 auto; }
+  .search-toggle { width: 44px; height: 44px; font-size: 1.65rem; }
+  .search-popover { position: fixed; top: 75px; right: 12px; width: calc(100vw - 24px); max-height: calc(100svh - 90px); }
+  .search-popover input { padding: 15px 16px; font-size: 1rem; }
+  .search-results { max-height: calc(100svh - 168px); }
   .entry-form > div.author-control { align-items: flex-start; flex-direction: column; gap: 8px; }
   .author-control select { width: 100%; }
-  .entries { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .entries { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  .entry.project-entry { width: min(100%, 270px); margin-inline: auto; padding: 18px; }
   .workspace-tools small { display: none; }
-  .meta-disclaimer { left: 16px; bottom: 14px; max-width: calc(100vw - 90px); font-size: .48rem; }
+  .meta-disclaimer { left: 16px; bottom: max(14px, env(safe-area-inset-bottom)); max-width: calc(100vw - 90px); font-size: .48rem; }
+  .intro { padding: 34px 20px 28px; }
+  .intro h1 { font-size: clamp(2.75rem, 13vw, 4.1rem); line-height: .92; }
   .project-socials { justify-content: flex-start; margin: 25px 0 0; }
+  .project-social { width: 50px; height: 50px; }
+  .tabs { padding: 12px; gap: 9px; }
+  .tabs button { min-height: 66px; padding: 0 12px; font-size: .78rem; text-align: center; }
+  .panel { width: 100%; padding: 32px 16px 110px; }
+  .heading { gap: 16px; margin-bottom: 24px; }
+  .heading h2 { font-size: clamp(2.25rem, 11vw, 3.15rem); }
+  .entry-form { padding: 18px; margin-bottom: 30px; }
+  .entry-form textarea { font-size: 1rem; }
+  .entry-form > div .confirm-entry { width: 48px; height: 48px; }
+  .entry-actions { gap: 7px; margin-top: 10px; }
+  .entry-actions button, .video-upload { min-height: 40px; font-size: .67rem; }
+  .video-modal { padding: 16px; align-items: center; }
+  .video-modal-frame { width: min(100%, 360px); gap: 10px; }
+  .video-modal-frame video { max-height: calc(100svh - 92px); border-radius: 13px; }
+  .video-modal-frame p { font-size: .9rem; }
+  .video-modal-close { width: 42px; height: 42px; top: 8px; right: 8px; }
 }
 
 @media (min-width: 761px) and (max-width: 1099px) { .entries { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
