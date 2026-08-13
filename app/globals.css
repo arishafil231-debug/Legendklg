@@ -431,7 +431,7 @@ footer { border-top: 1px solid var(--line); padding: 28px 0; color: var(--mist);
 .video-area { position: absolute; z-index: 0; inset: 0; display: grid; place-items: center; margin: 0; overflow: hidden; background: rgba(2, 11, 9, .55); color: var(--mist); font-size: .72rem; text-align: center; }
 .video-area::after { position: absolute; inset: 0; content: ""; pointer-events: none; background: linear-gradient(180deg, rgba(3, 9, 7, .72) 0%, rgba(3, 9, 7, .1) 42%, rgba(3, 9, 7, .08) 70%, rgba(3, 9, 7, .34) 100%); }
 .video-area p { position: relative; z-index: 1; margin: 0; padding: 14px; }
-.video-area video { width: 100%; height: 100%; border-radius: 0; max-height: none; background: #030907; object-fit: cover; cursor: zoom-in; }
+.video-area video { width: 100%; height: 100%; border-radius: 0; max-height: none; background: #030907; object-fit: contain; cursor: zoom-in; }
 .entry-actions { position: relative; z-index: 2; display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 12px; color: var(--mist); font-size: .68rem; }
 .entry-actions > span { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .entry-actions button { min-width: 0; border: 1px solid rgba(232,223,199,.16); border-radius: 8px; background: rgba(4,15,12,.18); color: var(--mist); cursor: pointer; margin: 0; padding: 8px 4px; }
