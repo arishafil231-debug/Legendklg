@@ -8,11 +8,6 @@ const sections = [
 ];
 const authors = ["Алёна", "Даниил", "Владимир", "Арина", "Михаил", "Филипп"];
 const videoExtensions = /\.(mp4|m4v|mov|webm|avi)$/i;
-const socialPlatforms = [
-  ["youtubeUrl", "YouTube", "▶", "youtube"],
-  ["tiktokUrl", "TikTok", "♪", "tiktok"],
-  ["instagramUrl", "Instagram*", "◎", "instagram"],
-];
 
 let active = "legends";
 let entries = [];
@@ -132,17 +127,6 @@ async function api(method, body) {
   return response.json();
 }
 
-async function saveSocialLink(id, key, value) {
-  try {
-    const { entry, error } = await api("PATCH", { id, [key]: value.trim() });
-    if (!entry) throw new Error(error ?? "Не удалось сохранить ссылку.");
-    entries = entries.map((item) => item.id === id ? withVideoUrl(entry) : item);
-    setStatus("Ссылка сохранена");
-  } catch (error) {
-    setStatus(error instanceof Error ? error.message : "Не удалось сохранить ссылку.");
-  }
-}
-
 function renderTabs() {
   const tabs = $("#tabs");
   tabs.replaceChildren();
@@ -245,49 +229,6 @@ function renderEntries() {
         videoArea.append(noVideo);
       }
 
-      const socialLinks = document.createElement("div");
-      socialLinks.className = "social-links";
-      if (entry.hasVideo) {
-        socialLinks.setAttribute("aria-label", "Ссылки на видео");
-        socialPlatforms.forEach(([key, labelText, icon, className]) => {
-          const row = document.createElement("label");
-          row.className = `social-link social-${className}`;
-          const brand = document.createElement("span");
-          brand.className = "social-brand";
-          const iconNode = document.createElement("i");
-          iconNode.textContent = icon;
-          const name = document.createElement("span");
-          name.textContent = labelText;
-          brand.append(iconNode, name);
-          const input = document.createElement("input");
-          const link = entry[key] ?? "";
-          input.type = "url";
-          input.value = link;
-          input.placeholder = "Добавить ссылку";
-          input.setAttribute("aria-label", `${labelText}: ссылка на видео`);
-          input.onblur = () => {
-            if (input.value.trim() !== link) void saveSocialLink(entry.id, key, input.value);
-          };
-          input.onkeydown = (event) => { if (event.key === "Enter") input.blur(); };
-          row.append(brand, input);
-          if (link) {
-            const open = document.createElement("a");
-            open.href = link;
-            open.target = "_blank";
-            open.rel = "noreferrer";
-            open.textContent = "↗";
-            open.setAttribute("aria-label", `Открыть ${labelText}`);
-            row.append(open);
-          }
-          const stats = document.createElement("span");
-          stats.className = "social-stats";
-          stats.title = "Данные о просмотрах и реакциях пока недоступны";
-          stats.innerHTML = "<span>👁 —</span><span>♡ —</span>";
-          row.append(stats);
-          socialLinks.append(row);
-        });
-      }
-
       const actions = document.createElement("div");
       actions.className = "entry-actions";
       const textActions = document.createElement("span");
@@ -299,7 +240,7 @@ function renderEntries() {
       remove.onclick = () => deleteEntry(entry.id);
       textActions.append(edit, remove);
       actions.append(uploadControl(entry), textActions);
-      article.append(title, footer, videoArea, ...(entry.hasVideo ? [socialLinks] : []), actions);
+      article.append(title, footer, videoArea, actions);
     }
     list.append(article);
   });

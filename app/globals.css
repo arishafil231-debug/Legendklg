@@ -344,7 +344,14 @@ footer { border-top: 1px solid var(--line); padding: 28px 0; color: var(--mist);
   align-items: end;
 }
 .project-intro h1 { font-size: clamp(3.5rem, 6vw, 6.5rem); }
-.project-intro > p:last-child { margin: 0 0 6px auto; max-width: 420px; line-height: 1.6; color: var(--mist); }
+.project-socials { display: flex; align-items: center; justify-content: flex-end; gap: 11px; margin: 0 0 6px auto; }
+.project-social { width: 54px; height: 54px; display: grid; place-items: center; border: 1px solid rgba(232,223,199,.23); border-radius: 50%; background: linear-gradient(135deg, rgba(232,223,199,.14), rgba(16,37,29,.31)); box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 10px 28px rgba(0,0,0,.14); color: var(--paper); text-decoration: none; backdrop-filter: blur(14px); transition: transform .22s ease, border-color .22s ease, color .22s ease; }
+.project-social:hover, .project-social:focus-visible { transform: translateY(-3px) scale(1.05); border-color: rgba(199,154,85,.72); color: var(--gold); outline: none; }
+.project-social i { width: 23px; height: 23px; display: grid; place-items: center; border: 1px solid currentColor; border-radius: 7px; font: .92rem/1 Arial, sans-serif; font-style: normal; }
+.project-social.youtube i { padding-left: 1px; border-radius: 6px; font-size: .7rem; }
+.project-social.tiktok i { border-radius: 50%; font: 1.05rem/1 Georgia, serif; }
+.project-social.instagram i { border-radius: 8px; font: 1.2rem/1 Georgia, serif; }
+.project-social span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 .section-tabs {
   padding: 18px 5vw;
@@ -432,18 +439,6 @@ footer { border-top: 1px solid var(--line); padding: 28px 0; color: var(--mist);
 .video-area::after { position: absolute; inset: 0; content: ""; pointer-events: none; background: linear-gradient(180deg, rgba(3, 9, 7, .72) 0%, rgba(3, 9, 7, .1) 42%, rgba(3, 9, 7, .08) 70%, rgba(3, 9, 7, .34) 100%); }
 .video-area p { position: relative; z-index: 1; margin: 0; padding: 14px; }
 .video-area video { width: 100%; height: 100%; border-radius: 0; max-height: none; background: #030907; object-fit: contain; cursor: zoom-in; }
-.social-links { position: relative; z-index: 2; display: grid; gap: 5px; margin-top: auto; padding: 8px; border: 1px solid rgba(232,223,199,.16); border-radius: 11px; background: rgba(3, 12, 10, .42); box-shadow: inset 0 1px 0 rgba(255,255,255,.08); backdrop-filter: blur(12px); }
-.social-link { display: grid; grid-template-columns: 76px minmax(0, 1fr) auto auto; align-items: center; gap: 6px; min-width: 0; color: var(--mist); }
-.social-brand { display: inline-flex; align-items: center; gap: 4px; color: var(--paper); font: .6rem/1 Arial, sans-serif; white-space: nowrap; }
-.social-brand i { width: 15px; height: 15px; display: inline-grid; place-items: center; border-radius: 4px; color: #fff; font: .62rem/1 Arial, sans-serif; font-style: normal; }
-.social-youtube .social-brand i { background: #d9272e; font-size: .48rem; }
-.social-tiktok .social-brand i { background: #151515; color: #83f1eb; text-shadow: 1px 0 #f65a83; }
-.social-instagram .social-brand i { background: radial-gradient(circle at 28% 90%, #ffd56b 0 11%, #f45b6d 39%, #8d46b4 70%, #5140a2 100%); }
-.social-link input { width: 100%; min-width: 0; padding: 4px 5px; border: 0; border-bottom: 1px solid rgba(232,223,199,.25); outline: none; background: transparent; color: var(--paper); font-size: .56rem; }
-.social-link input::placeholder { color: rgba(232,223,199,.48); }
-.social-link input:focus { border-color: var(--gold); }
-.social-link a { color: var(--gold); font-size: .75rem; text-decoration: none; }
-.social-stats { display: inline-flex; gap: 5px; color: rgba(232,223,199,.68); font-size: .53rem; white-space: nowrap; }
 .entry-actions { position: relative; z-index: 2; display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 12px; color: var(--mist); font-size: .68rem; }
 .entry-actions > span { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .entry-actions button { min-width: 0; border: 1px solid rgba(232,223,199,.16); border-radius: 8px; background: rgba(4,15,12,.18); color: var(--mist); cursor: pointer; margin: 0; padding: 8px 4px; }
@@ -496,7 +491,7 @@ footer { border-top: 1px solid var(--line); padding: 28px 0; color: var(--mist);
   .workspace-head .access { display: none; }
   .meta-disclaimer { left: 16px; bottom: 14px; max-width: calc(100vw - 90px); font-size: .48rem; }
   .project-intro { padding: 55px 22px 36px; grid-template-columns: 1fr; }
-  .project-intro > p:last-child { margin: 25px 0 0; }
+  .project-socials { justify-content: flex-start; margin: 25px 0 0; }
   .section-tabs { padding: 14px; gap: 10px; grid-template-columns: 1fr 1fr; }
   .section-tabs button { min-height: 70px; padding: 0 15px; font-size: .82rem; }
   .entry-panel { padding-top: 50px; }

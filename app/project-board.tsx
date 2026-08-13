@@ -31,14 +31,8 @@ const sections = [
 
 const authors = ["Алёна", "Даниил", "Владимир", "Арина", "Михаил", "Филипп"] as const;
 const videoExtensions = /\.(mp4|m4v|mov|webm|avi)$/i;
-const socialPlatforms = [
-  { key: "youtubeUrl", label: "YouTube", icon: "▶", className: "youtube" },
-  { key: "tiktokUrl", label: "TikTok", icon: "♪", className: "tiktok" },
-  { key: "instagramUrl", label: "Instagram*", icon: "◎", className: "instagram" },
-] as const;
 
 type SectionId = (typeof sections)[number]["id"];
-type SocialKey = (typeof socialPlatforms)[number]["key"];
 type Entry = {
   id: number;
   section: SectionId;
@@ -46,9 +40,6 @@ type Entry = {
   author: string;
   hasVideo: boolean;
   videoUrl?: string;
-  youtubeUrl?: string;
-  tiktokUrl?: string;
-  instagramUrl?: string;
   createdAt: string;
 };
 
@@ -222,22 +213,6 @@ export function ProjectBoard() {
     }
   }
 
-  async function saveSocialLink(id: number, key: SocialKey, value: string) {
-    try {
-      const response = await fetch("/api/entries", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, [key]: value.trim() }),
-      });
-      const data = (await response.json()) as { entry?: Entry; error?: string };
-      if (!response.ok || !data.entry) throw new Error(data.error ?? "Не удалось сохранить ссылку.");
-      setEntries((items) => items.map((item) => item.id === id ? data.entry! : item));
-      setStatus("Ссылка сохранена");
-    } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Не удалось сохранить ссылку.");
-    }
-  }
-
   async function uploadVideo(id: number, file: File) {
     if (!(file.type.startsWith("video/") || videoExtensions.test(file.name))) {
       setStatus("Поддерживаются видео MP4, MOV, WebM, M4V и AVI.");
@@ -404,7 +379,11 @@ export function ProjectBoard() {
 
       <section className="project-intro">
         <h1>Легенды Калуги</h1>
-        <p>Общая тетрадь городской памяти. Выберите раздел и добавьте то, что знаете.</p>
+        <nav className="project-socials" aria-label="Страницы проекта в социальных сетях">
+          <a className="project-social youtube" href="https://www.youtube.com/@КалугаЛегенды" target="_blank" rel="noreferrer" aria-label="Легенды Калуги на YouTube"><i aria-hidden="true">▶</i><span>YouTube</span></a>
+          <a className="project-social tiktok" href="https://www.tiktok.com/@kaluga.legend?_r=1&_t=ZN-98qJMV61OY2" target="_blank" rel="noreferrer" aria-label="Легенды Калуги в TikTok"><i aria-hidden="true">♪</i><span>TikTok</span></a>
+          <a className="project-social instagram" href="https://www.instagram.com/kaluga.legends?igsh=MXQ1NXNqajd3MG1hdg%3D%3D&utm_source=qr" target="_blank" rel="noreferrer" aria-label="Легенды Калуги в Instagram"><i aria-hidden="true">◎</i><span>Instagram*</span></a>
+        </nav>
       </section>
 
       <nav className="section-tabs" aria-label="Разделы проекта">
@@ -498,32 +477,6 @@ export function ProjectBoard() {
                       <p>Видеофайлов пока нет</p>
                     )}
                   </div>
-                  {entry.hasVideo && (
-                    <div className="social-links" aria-label="Ссылки на видео">
-                      {socialPlatforms.map((platform) => {
-                        const link = entry[platform.key] ?? "";
-                        return (
-                          <label className={`social-link social-${platform.className}`} key={platform.key}>
-                            <span className="social-brand"><i aria-hidden="true">{platform.icon}</i>{platform.label}</span>
-                            <input
-                              type="url"
-                              defaultValue={link}
-                              placeholder="Добавить ссылку"
-                              aria-label={`${platform.label}: ссылка на видео`}
-                              onBlur={(event) => {
-                                if (event.currentTarget.value.trim() !== link) void saveSocialLink(entry.id, platform.key, event.currentTarget.value);
-                              }}
-                              onKeyDown={(event) => {
-                                if (event.key === "Enter") event.currentTarget.blur();
-                              }}
-                            />
-                            {link && <a href={link} target="_blank" rel="noreferrer" aria-label={`Открыть ${platform.label}`}>↗</a>}
-                            <span className="social-stats" title="Данные о просмотрах и реакциях пока недоступны"><span>👁 —</span><span>♡ —</span></span>
-                          </label>
-                        );
-                      })}
-                    </div>
-                  )}
                   <div className="entry-actions">
                     <label className={`video-upload${uploadingId === entry.id ? " is-uploading" : ""}`}>
                       <input
