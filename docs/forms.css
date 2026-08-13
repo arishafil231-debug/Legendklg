@@ -120,8 +120,8 @@
   .search-results { max-height: calc(100svh - 168px); }
   .entry-form > div.author-control { align-items: flex-start; flex-direction: column; gap: 8px; }
   .author-control select { width: 100%; }
-  .entries { grid-template-columns: minmax(0, 1fr); gap: 20px; }
-  .entry.project-entry { width: min(100%, 270px); margin-inline: auto; padding: 18px; }
+  .entries { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .entry.project-entry { width: 100%; margin-inline: 0; padding: 12px; }
   .workspace-tools small { display: none; }
   .meta-disclaimer { left: 16px; bottom: max(14px, env(safe-area-inset-bottom)); max-width: calc(100vw - 90px); font-size: .48rem; }
   .intro { padding: 34px 20px 28px; }
