@@ -28,7 +28,7 @@ function contentTypeFor(name: string, type: string) {
 
 async function findEntry(id: number) {
   return env.DB.prepare(
-    "SELECT id, section, content, author, video_key AS videoKey, created_at AS createdAt FROM entries WHERE id = ?",
+    "SELECT id, section, content, author, video_key AS videoKey, youtube_url AS youtubeUrl, tiktok_url AS tiktokUrl, instagram_url AS instagramUrl, created_at AS createdAt FROM entries WHERE id = ?",
   ).bind(id).first<Record<string, unknown>>();
 }
 

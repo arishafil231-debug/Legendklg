@@ -20,6 +20,9 @@ async function ensureTable() {
       content TEXT NOT NULL,
       author TEXT NOT NULL DEFAULT '',
       video_key TEXT,
+      youtube_url TEXT,
+      tiktok_url TEXT,
+      instagram_url TEXT,
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     )
   `).run();
@@ -29,6 +32,23 @@ async function ensureTable() {
   }
   if (!columns.results.some((column) => column.name === "video_key")) {
     await env.DB.prepare("ALTER TABLE entries ADD COLUMN video_key TEXT").run();
+  }
+  for (const column of ["youtube_url", "tiktok_url", "instagram_url"]) {
+    if (!columns.results.some((item) => item.name === column)) {
+      await env.DB.prepare(`ALTER TABLE entries ADD COLUMN ${column} TEXT`).run();
+    }
+  }
+}
+
+function normalizeUrl(value: unknown) {
+  if (typeof value !== "string") return null;
+  const text = value.trim();
+  if (!text) return "";
+  try {
+    const url = new URL(text);
+    return url.protocol === "https:" || url.protocol === "http:" ? url.toString() : null;
+  } catch {
+    return null;
   }
 }
 
@@ -40,7 +60,7 @@ export async function GET() {
   try {
     await ensureTable();
     const result = await env.DB.prepare(
-      "SELECT id, section, content, author, video_key AS videoKey, created_at AS createdAt FROM entries ORDER BY id DESC LIMIT 500",
+      "SELECT id, section, content, author, video_key AS videoKey, youtube_url AS youtubeUrl, tiktok_url AS tiktokUrl, instagram_url AS instagramUrl, created_at AS createdAt FROM entries ORDER BY id DESC LIMIT 500",
     ).all<Record<string, unknown>>();
     return json({
       entries: result.results.map((entry) => ({
@@ -66,7 +86,7 @@ export async function POST(request: Request) {
     }
     await ensureTable();
     const result = await env.DB.prepare(
-      "INSERT INTO entries (section, content, author) VALUES (?, ?, ?) RETURNING id, section, content, author, NULL AS videoKey, created_at AS createdAt",
+      "INSERT INTO entries (section, content, author) VALUES (?, ?, ?) RETURNING id, section, content, author, NULL AS videoKey, NULL AS youtubeUrl, NULL AS tiktokUrl, NULL AS instagramUrl, created_at AS createdAt",
     ).bind(section, content, author).first();
     return json({ entry: { ...result, hasVideo: false } }, { status: 201 });
   } catch {
@@ -76,15 +96,35 @@ export async function POST(request: Request) {
 
 export async function PATCH(request: Request) {
   try {
-    const body = (await request.json()) as { id?: number; content?: string };
+    const body = (await request.json()) as { id?: number; content?: string; youtubeUrl?: string; tiktokUrl?: string; instagramUrl?: string };
     const id = Number(body.id);
-    const content = body.content?.trim() ?? "";
-    if (!Number.isInteger(id) || !content || content.length > 500) {
+    const updates: [string, string][] = [];
+    if (Object.hasOwn(body, "content")) {
+      const content = body.content?.trim() ?? "";
+      if (!content || content.length > 500) {
+        return json({ error: "Некорректная запись" }, { status: 400 });
+      }
+      updates.push(["content", content]);
+    }
+    for (const [key, column] of [["youtubeUrl", "youtube_url"], ["tiktokUrl", "tiktok_url"], ["instagramUrl", "instagram_url"]] as const) {
+      if (Object.hasOwn(body, key)) {
+        const url = normalizeUrl(body[key]);
+        if (url === null) {
+          return json({ error: "Укажите корректную ссылку, начинающуюся с http:// или https://" }, { status: 400 });
+        }
+        updates.push([column, url]);
+      }
+    }
+    if (!Number.isInteger(id) || updates.length === 0) {
       return json({ error: "Некорректная запись" }, { status: 400 });
     }
     await ensureTable();
-    await env.DB.prepare("UPDATE entries SET content = ? WHERE id = ?").bind(content, id).run();
-    return json({ ok: true });
+    const statement = `UPDATE entries SET ${updates.map(([column]) => `${column} = ?`).join(", ")} WHERE id = ?`;
+    await env.DB.prepare(statement).bind(...updates.map(([, value]) => value), id).run();
+    const entry = await env.DB.prepare(
+      "SELECT id, section, content, author, video_key AS videoKey, youtube_url AS youtubeUrl, tiktok_url AS tiktokUrl, instagram_url AS instagramUrl, created_at AS createdAt FROM entries WHERE id = ?",
+    ).bind(id).first<Record<string, unknown>>();
+    return json({ entry: entry && { ...entry, hasVideo: Boolean(entry.videoKey), videoUrl: entry.videoKey ? `/api/videos?id=${id}` : undefined } });
   } catch {
     return json({ error: "Не удалось изменить запись" }, { status: 500 });
   }
