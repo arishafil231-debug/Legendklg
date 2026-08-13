@@ -471,7 +471,13 @@ footer { border-top: 1px solid var(--line); padding: 28px 0; color: var(--mist);
   html, body { min-height: 100%; overscroll-behavior-x: none; }
   .landing, .workspace { min-height: 100svh; overflow-x: clip; }
   .landing { padding: 0 22px; }
-  .cover-landing { padding: 0; background-position: 61% center; }
+  .cover-landing {
+    padding: 0;
+    background-image:
+      linear-gradient(180deg, rgba(2, 9, 12, .03) 45%, rgba(2, 9, 12, .62) 100%),
+      url("/cover-mobile.png");
+    background-position: center;
+  }
   .glass-project-card {
     justify-content: center;
     margin-bottom: 24px;
