@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { FormEvent, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 const sections = [
   {
@@ -68,6 +68,11 @@ export function ProjectBoard() {
   const [editing, setEditing] = useState<number | null>(null);
   const [editText, setEditText] = useState("");
   const [uploadingId, setUploadingId] = useState<number | null>(null);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedVideo, setSelectedVideo] = useState<Entry | null>(null);
+  const fullscreenVideoRef = useRef<HTMLVideoElement>(null);
+  const resumeAmbientAfterVideoRef = useRef(false);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState("Загружаем городскую память…");
 
@@ -78,6 +83,17 @@ export function ProjectBoard() {
       .sort((a, b) => a.content.localeCompare(b.content, "ru", { sensitivity: "base" })),
     [entries, active],
   );
+  const searchResults = useMemo(() => {
+    const term = searchTerm.trim().toLocaleLowerCase("ru");
+    if (!term) return [];
+    return entries
+      .filter((entry) => {
+        const section = sections.find((item) => item.id === entry.section);
+        return [entry.content, entry.author, section?.title ?? ""]
+          .some((value) => value.toLocaleLowerCase("ru").includes(term));
+      })
+      .sort((a, b) => a.content.localeCompare(b.content, "ru", { sensitivity: "base" }));
+  }, [entries, searchTerm]);
 
   useEffect(() => {
     fetch("/api/entries")
@@ -90,6 +106,22 @@ export function ProjectBoard() {
         setStatus("");
       })
       .catch(() => setStatus("Не удалось загрузить записи. Обновите страницу."));
+  }, []);
+
+  useLayoutEffect(() => {
+    const video = fullscreenVideoRef.current;
+    if (!selectedVideo || !video) return;
+    video.muted = false;
+    video.volume = 1;
+    void video.play().catch(() => undefined);
+  }, [selectedVideo]);
+
+  useEffect(() => {
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") closeVideo();
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
   }, []);
 
   useEffect(() => {
@@ -241,6 +273,33 @@ export function ProjectBoard() {
     }, 560);
   }
 
+  function chooseSearchResult(entry: Entry) {
+    setActive(entry.section);
+    setEditing(null);
+    setSearchTerm("");
+    setSearchOpen(false);
+    window.setTimeout(() => document.querySelector(".entries")?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
+  }
+
+  function closeVideo() {
+    fullscreenVideoRef.current?.pause();
+    setSelectedVideo(null);
+    if (resumeAmbientAfterVideoRef.current) {
+      resumeAmbientAfterVideoRef.current = false;
+      void startAudio();
+    }
+  }
+
+  function openVideo(entry: Entry) {
+    const audio = audioRef.current;
+    resumeAmbientAfterVideoRef.current = Boolean(audio && !audio.paused);
+    if (resumeAmbientAfterVideoRef.current) {
+      audio?.pause();
+      setSoundOn(false);
+    }
+    setSelectedVideo(entry);
+  }
+
   if (!inside) {
     return (
       <>
@@ -279,7 +338,41 @@ export function ProjectBoard() {
       <header className="workspace-head">
         <button className="back" onClick={() => setInside(false)}>← Все проекты</button>
         <div className="mini-brand"><span className="brand-mark">К</span> Проекты Калуги</div>
-        <span className="access"><i /> открыто по ссылке</span>
+        <div className="workspace-tools">
+          <div className={`site-search${searchOpen ? " is-open" : ""}`}>
+            <button
+              className="search-toggle"
+              onClick={() => setSearchOpen((open) => !open)}
+              aria-label="Поиск по всем разделам"
+              aria-expanded={searchOpen}
+            >⌕</button>
+            {searchOpen && (
+              <div className="search-popover">
+                <input
+                  autoFocus
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
+                  placeholder="Поиск по всем разделам"
+                  aria-label="Ключевые слова для поиска"
+                />
+                {searchTerm.trim() && (
+                  <div className="search-results" aria-live="polite">
+                    {searchResults.length ? searchResults.map((entry) => {
+                      const section = sections.find((item) => item.id === entry.section)!;
+                      return (
+                        <button key={entry.id} onClick={() => chooseSearchResult(entry)}>
+                          <span>{entry.content}</span>
+                          <small>{section.title}{entry.hasVideo ? " · видео" : ""}</small>
+                        </button>
+                      );
+                    }) : <p>Ничего не найдено</p>}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+          <span className="access"><i /> открыто по ссылке</span>
+        </div>
       </header>
 
       <section className="project-intro">
@@ -372,6 +465,7 @@ export function ProjectBoard() {
                           event.currentTarget.pause();
                           event.currentTarget.currentTime = 0;
                         }}
+                        onClick={() => openVideo(entry)}
                       >Ваш браузер не поддерживает видео.</video>
                     ) : (
                       <p>Видеофайлов пока нет</p>
@@ -404,6 +498,17 @@ export function ProjectBoard() {
         {status && <p className="status" role="status">{status}</p>}
       </section>
       </main>
+      {selectedVideo?.videoUrl && (
+        <div className="video-modal" role="dialog" aria-modal="true" aria-label={`Видео: ${selectedVideo.content}`} onClick={closeVideo}>
+          <div className="video-modal-frame" onClick={(event) => event.stopPropagation()}>
+            <button className="video-modal-close" onClick={closeVideo} aria-label="Закрыть видео">×</button>
+            <video ref={fullscreenVideoRef} src={selectedVideo.videoUrl} controls playsInline>
+              Ваш браузер не поддерживает видео.
+            </video>
+            <p>{selectedVideo.content}</p>
+          </div>
+        </div>
+      )}
     </>
   );
 }

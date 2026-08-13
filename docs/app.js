@@ -13,10 +13,75 @@ let active = "legends";
 let entries = [];
 let editing = null;
 let uploadingId = null;
+let resumeAmbientAfterVideo = false;
 const $ = (selector) => document.querySelector(selector);
 const current = () => sections.find(([id]) => id === active);
 const setStatus = (text = "") => { $("#status").textContent = text; };
 const withVideoUrl = (entry) => entry.videoUrl ? { ...entry, videoUrl: `${API_ORIGIN}${entry.videoUrl}` } : entry;
+
+function sectionTitle(id) {
+  return sections.find(([sectionId]) => sectionId === id)?.[1] ?? "";
+}
+
+function closeVideo() {
+  const video = $("#modalVideo");
+  video.pause();
+  video.removeAttribute("src");
+  video.load();
+  $("#videoModal").classList.add("hidden");
+  if (resumeAmbientAfterVideo) {
+    resumeAmbientAfterVideo = false;
+    setSound(true);
+  }
+}
+
+function openVideo(entry) {
+  if (!entry.videoUrl) return;
+  resumeAmbientAfterVideo = !$("#ambient").paused;
+  if (resumeAmbientAfterVideo) setSound(false);
+  const video = $("#modalVideo");
+  video.src = entry.videoUrl;
+  video.muted = false;
+  video.volume = 1;
+  $("#modalVideoTitle").textContent = entry.content;
+  $("#videoModal").classList.remove("hidden");
+  void video.play().catch(() => undefined);
+}
+
+function renderSearchResults() {
+  const results = $("#searchResults");
+  const term = $("#siteSearch").value.trim().toLocaleLowerCase("ru");
+  results.replaceChildren();
+  if (!term) return;
+  const matches = entries
+    .filter((entry) => [entry.content, entry.author, sectionTitle(entry.section)]
+      .some((value) => value.toLocaleLowerCase("ru").includes(term)))
+    .sort((a, b) => a.content.localeCompare(b.content, "ru", { sensitivity: "base" }));
+  if (!matches.length) {
+    const empty = document.createElement("p");
+    empty.textContent = "Ничего не найдено";
+    results.append(empty);
+    return;
+  }
+  matches.forEach((entry) => {
+    const button = document.createElement("button");
+    const title = document.createElement("span");
+    const details = document.createElement("small");
+    title.textContent = entry.content;
+    details.textContent = `${sectionTitle(entry.section)}${entry.hasVideo ? " · видео" : ""}`;
+    button.append(title, details);
+    button.onclick = () => {
+      active = entry.section;
+      editing = null;
+      $("#siteSearch").value = "";
+      $("#searchPopover").classList.add("hidden");
+      $("#searchToggle").setAttribute("aria-expanded", "false");
+      render();
+      setTimeout(() => $("#entries")?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
+    };
+    results.append(button);
+  });
+}
 
 async function uploadResponse(response) {
   const text = await response.text();
@@ -152,6 +217,10 @@ function renderEntries() {
         video.onmouseleave = () => {
           video.pause();
           video.currentTime = 0;
+        };
+        video.onclick = (event) => {
+          event.stopPropagation();
+          openVideo(entry);
         };
         videoArea.append(video);
       } else {
@@ -314,6 +383,18 @@ $("#back").onclick = () => {
   $("#project").setAttribute("aria-hidden", "true");
   $("#cover").classList.remove("hidden", "leaving");
 };
+
+$("#searchToggle").onclick = () => {
+  const popover = $("#searchPopover");
+  const isOpening = popover.classList.contains("hidden");
+  popover.classList.toggle("hidden", !isOpening);
+  $("#searchToggle").setAttribute("aria-expanded", String(isOpening));
+  if (isOpening) $("#siteSearch").focus();
+};
+$("#siteSearch").oninput = renderSearchResults;
+$("#closeVideo").onclick = closeVideo;
+$("#videoModal").onclick = (event) => { if (event.target === $("#videoModal")) closeVideo(); };
+document.addEventListener("keydown", (event) => { if (event.key === "Escape") closeVideo(); });
 
 setupAuthorControl();
 render();

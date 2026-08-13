@@ -15,7 +15,20 @@
     <button id="openProject" class="glass-card"><strong>Легенды Калуги</strong><span>→</span></button>
   </main>
   <main id="project" class="project hidden" aria-hidden="true">
-    <header><button id="back" class="back">← Все проекты</button><b>Проекты Калуги</b><small>● открыто по ссылке</small></header>
+    <header>
+      <button id="back" class="back">← Все проекты</button>
+      <b>Проекты Калуги</b>
+      <div class="workspace-tools">
+        <div class="site-search">
+          <button id="searchToggle" class="search-toggle" aria-label="Поиск по всем разделам" aria-expanded="false">⌕</button>
+          <div id="searchPopover" class="search-popover hidden">
+            <input id="siteSearch" type="search" placeholder="Поиск по всем разделам" aria-label="Ключевые слова для поиска" />
+            <div id="searchResults" class="search-results" aria-live="polite"></div>
+          </div>
+        </div>
+        <small>● открыто по ссылке</small>
+      </div>
+    </header>
     <section class="intro"><h1>Легенды Калуги</h1><p>Общая тетрадь городской памяти. Выберите раздел и добавьте то, что знаете.</p></section>
     <nav id="tabs" class="tabs" aria-label="Разделы проекта"></nav>
     <section class="panel">
@@ -25,6 +38,13 @@
       <div id="entries" class="entries" aria-live="polite"></div><p id="status" class="status" role="status"></p>
     </section>
   </main>
+  <div id="videoModal" class="video-modal hidden" role="dialog" aria-modal="true" aria-label="Просмотр видео">
+    <div class="video-modal-frame">
+      <button id="closeVideo" class="video-modal-close" aria-label="Закрыть видео">×</button>
+      <video id="modalVideo" controls playsinline></video>
+      <p id="modalVideoTitle"></p>
+    </div>
+  </div>
   <script src="app.js"></script>
 </body>
 </html>
